@@ -11,5 +11,10 @@ namespace Server
 
             Console.ReadKey();
         }
+
+        public static void Log(string text)
+        {
+            Console.WriteLine($"{DateTime.Now}: {text}");
+        }
     }
 }

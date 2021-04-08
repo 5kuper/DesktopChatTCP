@@ -23,6 +23,10 @@ namespace Client.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            // TODO: Delete it
+            Models.Client client = new Models.Client();
+            client.Connect("127.0.0.1", 8888);
         }
     }
 }

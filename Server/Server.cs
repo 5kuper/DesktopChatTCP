@@ -27,25 +27,20 @@ namespace Server
             _connections = new List<Connection>();
         }
 
-        public void Log(string text)
-        {
-            Console.WriteLine($"{DateTime.Now}: {text}");
-        }
-
         public void Start()
         {
             try
             {
-                Log("Starting server...");
+                Program.Log("Starting server...");
 
                 _listener.Start();
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Log($"Server started on port {Port}.");
+                Program.Log($"Server started on port {Port}.");
             }
             catch (Exception e)
             {
-                Log($"Server failed to start - {e.Message}");
+                Program.Log($"Server failed to start - {e.Message}");
                 Stop();
             }
         }
@@ -56,17 +51,17 @@ namespace Server
                 TcpClient client = _listener.EndAcceptTcpClient(result);
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
+                Program.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
 
                 if (MaxConnections > 0 && _connections.Count >= MaxConnections)
                 {
-                    Log($"{client.Client.RemoteEndPoint} failed to connect - Server full!");
+                    Program.Log($"{client.Client.RemoteEndPoint} failed to connect - Server full!");
                 }
                 else
                 {
                     Connection connection = new Connection(client, this);
                     connection.Begin();
-                    Log($"Client {client.Client.RemoteEndPoint} connected to server.");
+                    Program.Log($"Client {client.Client.RemoteEndPoint} connected to server.");
                 }
             }
             catch (Exception e)
@@ -76,7 +71,7 @@ namespace Server
                     return; // Server stopped
                 }
 
-                Log($"Server failed to connect new client - {e.Message}");
+                Program.Log($"Server failed to connect new client - {e.Message}");
                 Stop();
             }
         }
@@ -96,7 +91,7 @@ namespace Server
             {
                 connection.Close();
             }
-            Log("Server stopped.");
+            Program.Log("Server stopped.");
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Packets
     public enum WarningCode { }
 
     [Packet(2, typeof(WarningPacket)), Serializable] 
-    public partial class WarningPacket : Packet
+    public class WarningPacket : Packet
     {
         public int Code { get; set; }
 
@@ -15,12 +15,5 @@ namespace Packets
         {
             Code = code;
         }
-
-        public override void InvokeHandler()
-        {
-            Handle();
-        }
-
-        partial void Handle();
     }
 }

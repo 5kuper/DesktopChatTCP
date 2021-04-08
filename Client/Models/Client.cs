@@ -32,6 +32,8 @@ namespace Client.Models
 
             _stream = _socket.GetStream();
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
+
+            SendPacket(new MessagePacket("Skuper", "Hello")); // TODO: Delete it
         }
 
         private void ReceiveCallback(IAsyncResult result)
@@ -50,7 +52,7 @@ namespace Client.Models
                 try
                 {
                     Packet packet = Packet.Deserialize(data);
-                    packet.InvokeHandler();
+                    PacketHandler.Handle(packet);
                 }
                 catch
                 {

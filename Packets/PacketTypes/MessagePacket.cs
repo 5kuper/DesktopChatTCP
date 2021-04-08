@@ -3,7 +3,7 @@
 namespace Packets
 {
     [Packet(1, typeof(MessagePacket)), Serializable] 
-    public partial class MessagePacket : Packet
+    public class MessagePacket : Packet
     {
         public string Sender { get; set; }
         public string Content { get; set; }
@@ -16,12 +16,5 @@ namespace Packets
             Sender = sender;
             Content = content;
         }
-
-        public override void InvokeHandler()
-        {
-            Handle();
-        }
-
-        partial void Handle(); // The server project has one implementation, and the client project is different
     }
 }

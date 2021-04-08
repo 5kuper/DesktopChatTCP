@@ -48,18 +48,18 @@ namespace Server
                 try
                 {
                     Packet packet = Packet.Deserialize(data);
-                    packet.InvokeHandler();
+                    PacketHandler.Handle(packet);
                 }
                 catch
                 {
-                    _server.Log("Received data that cannot be deserialized to a packet!");
+                    Program.Log("Received data that cannot be deserialized to a packet!");
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint} - {e.Message}");
+                Program.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint} - {e.Message}");
             }
         }
 
@@ -72,7 +72,7 @@ namespace Server
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to send data to {_socket.Client.RemoteEndPoint} - {e.Message}");
+                Program.Log($"Failed to send data to {_socket.Client.RemoteEndPoint} - {e.Message}");
             }
         }
 

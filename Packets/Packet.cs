@@ -75,8 +75,5 @@ namespace Packets
                 return data.Length;
             }
         }
-
-        /// <summary>Invokes a method that handle the packet.</summary>
-        public abstract void InvokeHandler();
     }
 }
