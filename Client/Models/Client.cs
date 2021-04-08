@@ -2,33 +2,35 @@
 using System.Net.Sockets;
 using Packets;
 
-namespace Server
+namespace Client.Models
 {
-    public class Connection
+    public class Client
     {
-        public string ID { get; }
-        public string Username { get; }
+        public string ID { get; set; }
+        public string Username { get; set; }
 
-        private readonly Server _server;
-        private readonly TcpClient _socket;
-        private readonly NetworkStream _stream;
+        private TcpClient _socket;
+        private NetworkStream _stream;
 
         private byte[] _buffer;
 
-        public Connection(TcpClient client, Server server)
+        public void Connect(string host, int port)
         {
-            ID = Guid.NewGuid().ToString();
-
-            _server = server;
-            _socket = client;
-            _stream = client.GetStream();
-
+            _socket = new TcpClient();
+            _socket.BeginConnect(host, port, ConnectCallback, _socket);
             _buffer = new byte[4096];
         }
 
-        public void Begin()
+        public void ConnectCallback(IAsyncResult result)
         {
-            _server.AddConnection(this);
+            _socket.EndConnect(result);
+
+            if (!_socket.Connected)
+            {
+                return;
+            }
+
+            _stream = _socket.GetStream();
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
         }
 
@@ -52,14 +54,14 @@ namespace Server
                 }
                 catch
                 {
-                    _server.Log("Received data that cannot be deserialized to a packet!");
+                    // TODO: Log("Received data that cannot be deserialized to a packet!");
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint} - {e.Message}");
+                // TODO: Log($"Failed to receive data from server - {e.Message}");
             }
         }
 
@@ -72,14 +74,12 @@ namespace Server
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to send data to {_socket.Client.RemoteEndPoint} - {e.Message}");
+                // TODO: Log($"Failed to send data to server - {e.Message}");
             }
         }
 
-        public void Close()
+        public void Disconnect()
         {
-            _server.RemoveConnection(this);
-
             _stream?.Close();
             _socket?.Close();
         }
