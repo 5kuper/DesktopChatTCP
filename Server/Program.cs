@@ -1,12 +1,13 @@
 ﻿using System;
 
-namespace Server
+namespace ServerSide
 {
     internal class Program
     {
         private static void Main()
         {
             Server server = new Server(8888);
+            server.OnLog += Log;
             server.Start();
 
             Console.ReadKey();
@@ -14,7 +15,7 @@ namespace Server
 
         public static void Log(string text)
         {
-            Console.WriteLine($"{DateTime.Now}: {text}");
+            Console.WriteLine($"{DateTime.Now} {text}");
         }
     }
 }

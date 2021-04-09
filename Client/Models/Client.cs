@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using Packets;
 
-namespace Client.Models
+namespace ClientSide.Models
 {
     public class Client
     {
@@ -12,18 +12,31 @@ namespace Client.Models
         private TcpClient _socket;
         private NetworkStream _stream;
 
-        private byte[] _buffer;
+        private readonly byte[] _buffer = new byte[4096];
+
+        public Action<string> Log { get; private set; } = s => { };
+        public event Action<string> OnLog
+        {
+            add => Log += value;
+            remove => Log -= value;
+        }
 
         public void Connect(string host, int port)
         {
             _socket = new TcpClient();
             _socket.BeginConnect(host, port, ConnectCallback, _socket);
-            _buffer = new byte[4096];
         }
 
         public void ConnectCallback(IAsyncResult result)
         {
-            _socket.EndConnect(result);
+            try
+            {
+                _socket.EndConnect(result);
+            }
+            catch (Exception e)
+            {
+                Log($"Failed to connect to server: {e.Message}");
+            }
 
             if (!_socket.Connected)
             {
@@ -32,8 +45,6 @@ namespace Client.Models
 
             _stream = _socket.GetStream();
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
-
-            SendPacket(new MessagePacket("Skuper", "Hello")); // TODO: Delete it
         }
 
         private void ReceiveCallback(IAsyncResult result)
@@ -56,14 +67,14 @@ namespace Client.Models
                 }
                 catch
                 {
-                    // TODO: Log("Received data that cannot be deserialized to a packet!");
+                    Log("Received data that cannot be deserialized to a packet!");
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
-                // TODO: Log($"Failed to receive data from server - {e.Message}");
+                Log($"Failed to receive data from server: {e.Message}");
             }
         }
 
@@ -72,11 +83,11 @@ namespace Client.Models
             try
             {
                 packet.Serialize(out byte[] data);
-                _stream.WriteAsync(data, 0, data.Length);
+                _stream?.WriteAsync(data, 0, data.Length);
             }
             catch (Exception e)
             {
-                // TODO: Log($"Failed to send data to server - {e.Message}");
+                Log($"Failed to send data to server: {e.Message}");
             }
         }
 

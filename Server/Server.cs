@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using Packets;
 
-namespace Server
+namespace ServerSide
 {
     public class Server
     {
@@ -17,6 +17,13 @@ namespace Server
 
         public void AddConnection(Connection connection) => _connections.Add(connection);
         public void RemoveConnection(Connection connection) => _connections.Remove(connection);
+
+        public Action<string> Log { get; private set; } = s => { };
+        public event Action<string> OnLog
+        {
+            add => Log += value;
+            remove => Log -= value;
+        }
 
         public Server(int port, int maxConnections = -1)
         {
@@ -31,16 +38,16 @@ namespace Server
         {
             try
             {
-                Program.Log("Starting server...");
+                Log("Starting server...");
 
                 _listener.Start();
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Program.Log($"Server started on port {Port}.");
+                Log($"Server started on port {Port}.");
             }
             catch (Exception e)
             {
-                Program.Log($"Server failed to start - {e.Message}");
+                Log($"Server failed to start: {e.Message}");
                 Stop();
             }
         }
@@ -51,17 +58,17 @@ namespace Server
                 TcpClient client = _listener.EndAcceptTcpClient(result);
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Program.Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
+                Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
 
                 if (MaxConnections > 0 && _connections.Count >= MaxConnections)
                 {
-                    Program.Log($"{client.Client.RemoteEndPoint} failed to connect - Server full!");
+                    Log($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
                 }
                 else
                 {
                     Connection connection = new Connection(client, this);
                     connection.Begin();
-                    Program.Log($"Client {client.Client.RemoteEndPoint} connected to server.");
+                    Log($"Client {client.Client.RemoteEndPoint} connected to server.");
                 }
             }
             catch (Exception e)
@@ -71,7 +78,7 @@ namespace Server
                     return; // Server stopped
                 }
 
-                Program.Log($"Server failed to connect new client - {e.Message}");
+                Log($"Server failed to connect new client: {e.Message}");
                 Stop();
             }
         }
@@ -91,7 +98,7 @@ namespace Server
             {
                 connection.Close();
             }
-            Program.Log("Server stopped.");
+            Log("Server stopped.");
         }
     }
 }

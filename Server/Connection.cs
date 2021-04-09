@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using Packets;
 
-namespace Server
+namespace ServerSide
 {
     public class Connection
     {
@@ -13,7 +13,7 @@ namespace Server
         private readonly TcpClient _socket;
         private readonly NetworkStream _stream;
 
-        private byte[] _buffer;
+        private readonly byte[] _buffer;
 
         public Connection(TcpClient client, Server server)
         {
@@ -52,14 +52,14 @@ namespace Server
                 }
                 catch
                 {
-                    Program.Log("Received data that cannot be deserialized to a packet!");
+                    _server.Log("Received data that cannot be deserialized to a packet!");
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
-                Program.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint} - {e.Message}");
+                _server.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint}: {e.Message}");
             }
         }
 
@@ -72,7 +72,7 @@ namespace Server
             }
             catch (Exception e)
             {
-                Program.Log($"Failed to send data to {_socket.Client.RemoteEndPoint} - {e.Message}");
+                _server.Log($"Failed to send data to {_socket.Client.RemoteEndPoint}: {e.Message}");
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using Packets;
 
-namespace Client.Models
+namespace ClientSide.Models
 {
     public static class PacketHandler
     {
@@ -9,7 +9,7 @@ namespace Client.Models
         {
             if (packet is MessagePacket)
             {
-
+                
             }
             else if (packet is WarningPacket)
             {

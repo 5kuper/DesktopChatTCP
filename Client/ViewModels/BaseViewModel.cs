@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Client.ViewModels
+namespace ClientSide.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {

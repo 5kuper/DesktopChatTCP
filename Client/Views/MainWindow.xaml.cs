@@ -12,8 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ClientSide.ViewModels;
 
-namespace Client.Views
+namespace ClientSide.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -23,10 +24,7 @@ namespace Client.Views
         public MainWindow()
         {
             InitializeComponent();
-
-            // TODO: Delete it
-            Models.Client client = new Models.Client();
-            client.Connect("127.0.0.1", 8888);
+            DataContext = new MainWindowViewModel();
         }
     }
 }

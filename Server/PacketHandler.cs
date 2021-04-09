@@ -1,7 +1,7 @@
 ﻿using System;
 using Packets;
 
-namespace Server
+namespace ServerSide
 {
     public static class PacketHandler
     {
@@ -10,7 +10,7 @@ namespace Server
             if (packet is MessagePacket)
             {
                 MessagePacket message = (MessagePacket)packet;
-                Program.Log($"User {message.Sender} said \"{message.Content}\"");
+                Program.Log($"User {message.Sender} said: \"{message.Content}\"");
             }
             else if (packet is WarningPacket)
             {
