@@ -26,6 +26,7 @@ namespace ServerSide
                 switch (warning.Code)
                 {
                     case WarningCode.ClientDisconnecting:
+                        sender.Close();
                         _server.Log($"User \"{sender.Username}\" disconnected!");
                         break;
                     default:

@@ -9,6 +9,8 @@ namespace ClientSide.Models
         public string ID { get; set; }
         public string Username { get; set; }
 
+        public bool Connected => _socket?.Connected ?? false;
+
         public PacketHandler Handler { get; }
 
         private TcpClient _socket;
@@ -49,6 +51,11 @@ namespace ClientSide.Models
             }
             catch (Exception e)
             {
+                if (e is ObjectDisposedException)
+                {
+                    return; // Client disconnected
+                }
+
                 Log($"Failed to connect to server: {e.Message}");
             }
 
@@ -80,8 +87,13 @@ namespace ClientSide.Models
                     Packet packet = Packet.Deserialize(data);
                     Handler.Handle(packet);
                 }
-                catch
+                catch (Exception e)
                 {
+                    if (e is ObjectDisposedException)
+                    {
+                        return; // Client disconnected
+                    }
+
                     Log("Received data that cannot be deserialized to a packet!");
                 }
 
@@ -102,6 +114,11 @@ namespace ClientSide.Models
             }
             catch (Exception e)
             {
+                if (e is ObjectDisposedException)
+                {
+                    return; // Client disconnected
+                }
+
                 Log($"Failed to send data to server: {e.Message}");
             }
         }

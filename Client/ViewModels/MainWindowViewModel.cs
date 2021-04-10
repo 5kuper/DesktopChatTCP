@@ -11,6 +11,7 @@ namespace ClientSide.ViewModels
     {
         public Client Client { get; set; }
 
+
         public string Username
         {
             get => Client.Username;
@@ -63,17 +64,40 @@ namespace ClientSide.ViewModels
             {
                 _message = value;
                 OnPropertyChanged(nameof(Message));
-
             }
         }
+
+
+        private bool _hostAndPortFieldsEnabled = true;
+        public bool HostAndPortFieldsEnabled
+        {
+            get => _hostAndPortFieldsEnabled;
+            set
+            {
+                _hostAndPortFieldsEnabled = value;
+                OnPropertyChanged(nameof(HostAndPortFieldsEnabled));
+            }
+        }
+
+        private string _connectOrDisconnectButtonContent = "Connect";
+        public string ConnectOrDisconnectButtonContent
+        {
+            get => _connectOrDisconnectButtonContent;
+            set
+            {
+                _connectOrDisconnectButtonContent = value;
+                OnPropertyChanged(nameof(ConnectOrDisconnectButtonContent));
+            } 
+        }
+
 
         public ICommand UpdateUsernameCommand
         {
             get
             {
                 return new RelayCommand(o =>
-                {
-                    
+                {   
+                    Log("This button doesn't work yet :(");
                 });
             }
         }
@@ -83,7 +107,18 @@ namespace ClientSide.ViewModels
             get {
                 return new RelayCommand(o =>
                 {
-                    Client.Connect(Host, Port);
+                    if (!Client.Connected)
+                    {
+                        Client.Connect(Host, Port);
+                        HostAndPortFieldsEnabled = false;
+                        ConnectOrDisconnectButtonContent = "Disconnect";
+                    }
+                    else
+                    {
+                        Client.Disconnect();
+                        HostAndPortFieldsEnabled = true;
+                        ConnectOrDisconnectButtonContent = "Connect";
+                    }
                 });
             }
         }
@@ -100,6 +135,7 @@ namespace ClientSide.ViewModels
                 });
             }
         }
+
 
         public MainWindowViewModel()
         {

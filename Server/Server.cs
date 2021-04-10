@@ -72,7 +72,7 @@ namespace ServerSide
                 if (MaxConnections > 0 && ConnectedUsers.Count >= MaxConnections)
                 {
                     connection.SendPacket(new ConnectionResponsePacket(RejectionReason.ServerFull));
-                    Log($"Connection request from {client.Client.RemoteEndPoint} was rejected: Server full!");
+                    Log($"Connection request from {client.Client?.RemoteEndPoint} was rejected: Server full!");
                     connection.Close();
                 }
             }

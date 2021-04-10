@@ -21,11 +21,34 @@ namespace ClientSide.Models
                 switch (warning.Code)
                 {
                     case WarningCode.ServerStopping:
+                        _client.Disconnect();
                         _client.Log($"Server stopped!");
                         break;
                     /* default:
                         _client.Log($"Server sent invalid warning!");
                         break; */
+                }
+            }
+            else if (packet is ConnectionResponsePacket response)
+            {
+                if (response.ConnectionConfirmed)
+                {
+                    _client.ID = response.UserID;
+                }
+                else
+                {
+                    switch (response.RejectionReason)
+                    {
+                        case RejectionReason.ServerFull:
+                            _client.Log("Failed to connect: Server full!");
+                            break;
+                        case RejectionReason.UsernameUnavailable:
+                            _client.Log("Failed to connect: Username unavailable!");
+                            break;
+                        case RejectionReason.UsernameAlreadyUsed:
+                            _client.Log("Failed to connect: Username already used!");
+                            break;
+                    }
                 }
             }
             else
