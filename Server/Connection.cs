@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using Packets;
 
@@ -6,8 +7,12 @@ namespace ServerSide
 {
     public class Connection
     {
-        public string ID { get; }
-        public string Username { get; }
+        public bool IsConfirmed { get; set; }
+
+        public string ID { get; set; }
+        public string Username { get; set; }
+
+        public EndPoint RemoteEndPoint { get; }
 
         private readonly Server _server;
         private readonly TcpClient _socket;
@@ -17,18 +22,18 @@ namespace ServerSide
 
         public Connection(TcpClient client, Server server)
         {
-            ID = Guid.NewGuid().ToString();
-
             _server = server;
             _socket = client;
             _stream = client.GetStream();
 
             _buffer = new byte[4096];
+
+            RemoteEndPoint = _socket.Client.RemoteEndPoint;
         }
 
         public void Begin()
         {
-            _server.AddConnection(this);
+            _server.ProcessingClients.Add(this);
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
         }
 
@@ -48,18 +53,39 @@ namespace ServerSide
                 try
                 {
                     Packet packet = Packet.Deserialize(data);
-                    PacketHandler.Handle(packet);
+
+                    if (!IsConfirmed && packet is not ConnectionRequestPacket)
+                    {
+                        _server.Log($"Closing unconfirmed connection {RemoteEndPoint} " +
+                                    $"from which data was received that isn't a ConnectionRequestPacket!");
+                        Close();
+                        return;
+                    }
+
+                    _server.Handler.Handle(packet, this);
                 }
-                catch
+                catch (Exception e)
                 {
-                    _server.Log("Received data that cannot be deserialized to a packet!");
+                    if (e is ObjectDisposedException)
+                    {
+                        return; // Connection closed
+                    }
+
+                    _server.Log($"Closing connection {RemoteEndPoint} from which data was received that cannot be deserialized to a packet!");
+                    Close();
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to receive data from {_socket.Client.RemoteEndPoint}: {e.Message}");
+                if (e is ObjectDisposedException)
+                {
+                    return; // Connection closed
+                }
+
+                _server?.Log($"Closing connection {RemoteEndPoint} from which failed to receive data:\n{e.Message}");
+                Close();
             }
         }
 
@@ -72,13 +98,22 @@ namespace ServerSide
             }
             catch (Exception e)
             {
-                _server.Log($"Failed to send data to {_socket.Client.RemoteEndPoint}: {e.Message}");
+                if (e is ObjectDisposedException)
+                {
+                    return; // Connection closed
+                }
+
+                _server?.Log($"Closing connection {RemoteEndPoint} that failed to send data:\n{e.Message}");
+                Close();
             }
         }
 
         public void Close()
         {
-            _server.RemoveConnection(this);
+            _server.Log($"Connection {RemoteEndPoint} closed.");
+
+            _server.ConnectedUsers.Remove(this);
+            _server.ProcessingClients.Remove(this);
 
             _stream?.Close();
             _socket?.Close();

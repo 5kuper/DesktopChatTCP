@@ -3,17 +3,30 @@ using Packets;
 
 namespace ClientSide.Models
 {
-    public static class PacketHandler
+    /// <summary>It handles packets sent to the client.</summary>
+    public class PacketHandler
     {
-        public static void Handle(Packet packet)
-        {
-            if (packet is MessagePacket)
-            {
-                
-            }
-            else if (packet is WarningPacket)
-            {
+        private readonly Client _client;
 
+        public PacketHandler(Client client) => _client = client;
+
+        public void Handle(Packet packet)
+        {
+            if (packet is MessagePacket message)
+            {
+                _client.WriteMessage(message.Sender, message.Content);
+            }
+            else if (packet is WarningPacket warning)
+            {
+                switch (warning.Code)
+                {
+                    case WarningCode.ServerStopping:
+                        _client.Log($"Server stopped!");
+                        break;
+                    /* default:
+                        _client.Log($"Server sent invalid warning!");
+                        break; */
+                }
             }
             else
             {

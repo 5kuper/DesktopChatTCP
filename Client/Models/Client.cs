@@ -9,6 +9,8 @@ namespace ClientSide.Models
         public string ID { get; set; }
         public string Username { get; set; }
 
+        public PacketHandler Handler { get; }
+
         private TcpClient _socket;
         private NetworkStream _stream;
 
@@ -19,6 +21,18 @@ namespace ClientSide.Models
         {
             add => Log += value;
             remove => Log -= value;
+        }
+
+        public Action<string, string> WriteMessage { get; private set; } = (s, c) => { };
+        public event Action<string, string> OnWriteMessage
+        {
+            add => WriteMessage += value;
+            remove => WriteMessage -= value;
+        }
+
+        public Client()
+        {
+            Handler = new PacketHandler(this);
         }
 
         public void Connect(string host, int port)
@@ -44,6 +58,7 @@ namespace ClientSide.Models
             }
 
             _stream = _socket.GetStream();
+            SendPacket(new ConnectionRequestPacket(Username)); 
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
         }
 
@@ -63,7 +78,7 @@ namespace ClientSide.Models
                 try
                 {
                     Packet packet = Packet.Deserialize(data);
-                    PacketHandler.Handle(packet);
+                    Handler.Handle(packet);
                 }
                 catch
                 {
@@ -93,6 +108,8 @@ namespace ClientSide.Models
 
         public void Disconnect()
         {
+            SendPacket(new WarningPacket(WarningCode.ClientDisconnecting));
+
             _stream?.Close();
             _socket?.Close();
         }

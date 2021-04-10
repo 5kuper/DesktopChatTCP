@@ -11,13 +11,12 @@ namespace ClientSide.ViewModels
     {
         public Client Client { get; set; }
 
-        private string _username;
         public string Username
         {
-            get => _username;
+            get => Client.Username;
             set
             {
-                _username = value;
+                Client.Username = value;
                 OnPropertyChanged(nameof(Username));
             }
         }
@@ -96,7 +95,7 @@ namespace ClientSide.ViewModels
                 return new RelayCommand(o =>
                 {
                     Client.SendPacket(new MessagePacket(Username, Message));
-                    WriteToChat("You", Message);
+                    WriteMessage("You", Message);
                     Message = null;
                 });
             }
@@ -105,15 +104,16 @@ namespace ClientSide.ViewModels
         public MainWindowViewModel()
         {
             Client = new Client();
-            Client.OnLog += WriteToChat;
+            Client.OnLog += Log;
+            Client.OnWriteMessage += WriteMessage;
         }
 
-        public void WriteToChat(string text)
+        public void Log(string text)
         {
             Chat += text + "\n";
         }
 
-        public void WriteToChat(string sender, string content)
+        public void WriteMessage(string sender, string content)
         {
             Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {sender}: {content}\n";
         }

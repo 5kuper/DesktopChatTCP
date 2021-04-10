@@ -12,11 +12,12 @@ namespace ServerSide
         public int Port { get; }
         public int MaxConnections { get; }
 
-        private readonly TcpListener _listener;
-        private readonly List<Connection> _connections;
+        public PacketHandler Handler { get; }
 
-        public void AddConnection(Connection connection) => _connections.Add(connection);
-        public void RemoveConnection(Connection connection) => _connections.Remove(connection);
+        public List<Connection> ConnectedUsers { get; } // Confirmed connections
+        public List<Connection> ProcessingClients { get; } // Unconfirmed connections
+
+        private readonly TcpListener _listener;
 
         public Action<string> Log { get; private set; } = s => { };
         public event Action<string> OnLog
@@ -30,8 +31,12 @@ namespace ServerSide
             Port = port;
             MaxConnections = maxConnections;
 
+            Handler = new PacketHandler(this);
+
+            ConnectedUsers = new List<Connection>();
+            ProcessingClients = new List<Connection>();
+
             _listener = new TcpListener(IPAddress.Any, port);
-            _connections = new List<Connection>();
         }
 
         public void Start()
@@ -47,10 +52,11 @@ namespace ServerSide
             }
             catch (Exception e)
             {
-                Log($"Server failed to start: {e.Message}");
+                Log($"Server failed to start:\n{e.Message}");
                 Stop();
             }
         }
+
         private void ConnectCallback(IAsyncResult result)
         {
             try
@@ -58,17 +64,16 @@ namespace ServerSide
                 TcpClient client = _listener.EndAcceptTcpClient(result);
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Log($"Incoming connection from {client.Client.RemoteEndPoint}...");
+                Connection connection = new Connection(client, this);
+                connection.Begin();
 
-                if (MaxConnections > 0 && _connections.Count >= MaxConnections)
+                Log($"Processing incoming connection from {client.Client?.RemoteEndPoint}...");
+
+                if (MaxConnections > 0 && ConnectedUsers.Count >= MaxConnections)
                 {
-                    Log($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
-                }
-                else
-                {
-                    Connection connection = new Connection(client, this);
-                    connection.Begin();
-                    Log($"Client {client.Client.RemoteEndPoint} connected to server.");
+                    connection.SendPacket(new ConnectionResponsePacket(RejectionReason.ServerFull));
+                    Log($"Connection request from {client.Client.RemoteEndPoint} was rejected: Server full!");
+                    connection.Close();
                 }
             }
             catch (Exception e)
@@ -78,14 +83,14 @@ namespace ServerSide
                     return; // Server stopped
                 }
 
-                Log($"Server failed to connect new client: {e.Message}");
+                Log($"Server failed to connect new client:\n{e.Message}");
                 Stop();
             }
         }
 
-        public void BroadcastPacket(Packet packet, Connection ignored)
+        public void BroadcastPacket(Packet packet, Connection ignored = null)
         {
-            foreach (var client in _connections.Where(client => client != ignored))
+            foreach (var client in ConnectedUsers.Where(client => client != ignored))
             {
                 client.SendPacket(packet);
             }
@@ -93,8 +98,10 @@ namespace ServerSide
 
         public void Stop()
         {
+            BroadcastPacket(new WarningPacket(WarningCode.ServerStopping));
+
             _listener.Stop();
-            foreach (var connection in _connections)
+            foreach (var connection in ConnectedUsers)
             {
                 connection.Close();
             }
