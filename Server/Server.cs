@@ -98,7 +98,7 @@ namespace ServerSide
 
         public void Stop()
         {
-            BroadcastPacket(new WarningPacket(WarningCode.ServerStopping));
+            BroadcastPacket(new NotificationPacket(NotificationCode.ServerStopping));
 
             _listener.Stop();
             foreach (var connection in ConnectedUsers)

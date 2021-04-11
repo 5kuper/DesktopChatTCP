@@ -26,5 +26,21 @@ namespace ClientSide.Views
             InitializeComponent();
             DataContext = new MainWindowViewModel();
         }
+
+        private void UsernameTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            UsernamePlaceholder.Visibility = Visibility.Collapsed;
+        }
+
+        private void UsernameTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textbox)
+            {
+                if (string.IsNullOrEmpty(textbox.Text))
+                {
+                    UsernamePlaceholder.Visibility = Visibility.Visible;
+                }
+            }
+        }
     }
 }

@@ -19,13 +19,13 @@ namespace ServerSide
             if (packet is MessagePacket message)
             {
                 _server.Log($"User \"{sender.Username}\" said: \"{message.Content}\"");
-                _server.BroadcastPacket(message, sender);
+                _server.BroadcastPacket(new MessagePacket(sender.Username, message.Content), sender);
             }
-            else if (packet is WarningPacket warning)
+            else if (packet is NotificationPacket warning)
             {
                 switch (warning.Code)
                 {
-                    case WarningCode.ClientDisconnecting:
+                    case NotificationCode.ClientDisconnecting:
                         sender.Close();
                         _server.Log($"User \"{sender.Username}\" disconnected!");
                         break;

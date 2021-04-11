@@ -10,7 +10,13 @@ namespace Packets
 
         public MessagePacket() { }
 
-        /// <summary>Clients specify their ID as sender, and the server specifies the client's username as sender.</summary>
+        /// <summary>Constructor for client.</summary>
+        public MessagePacket(string content)
+        {
+            Content = content;
+        }
+
+        /// <summary>Constructor for server.</summary>
         public MessagePacket(string sender, string content)
         {
             Sender = sender;

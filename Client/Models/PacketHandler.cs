@@ -16,11 +16,11 @@ namespace ClientSide.Models
             {
                 _client.WriteMessage(message.Sender, message.Content);
             }
-            else if (packet is WarningPacket warning)
+            else if (packet is NotificationPacket warning)
             {
                 switch (warning.Code)
                 {
-                    case WarningCode.ServerStopping:
+                    case NotificationCode.ServerStopping:
                         _client.Disconnect();
                         _client.Log($"Server stopped!");
                         break;

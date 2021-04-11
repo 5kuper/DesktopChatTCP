@@ -7,13 +7,18 @@
         xmlns:viewmodels="clr-namespace:ClientSide.ViewModels"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainWindowViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800" MinHeight="600" MaxHeight="600" MinWidth="800" MaxWidth="800">
+        Title="MainWindow" Background="LightBlue" Height="600" Width="800" MinHeight="600" MaxHeight="600" MinWidth="800" MaxWidth="800">
     <Grid>
         <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="360" Margin="10,10,0,0">
-            <TextBox Text="{Binding Path=Username, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="NoWrap" 
-                     FontSize="18" HorizontalAlignment="Left" Height="30" Width="210"/>
-            <Button Command="{Binding UpdateUsernameCommand}" Content="Update username" FontSize="15" HorizontalAlignment="Right" Height="30" Width="143"/>
+            <Grid HorizontalAlignment="Left" Height="30" Width="210"> <Label Background="White"/>
+                <TextBlock Name="UsernamePlaceholder" Text="Enter username..." FontSize="18" Foreground="Gray" Margin="5,0"/>
+                <TextBox Text="{Binding Path=Username, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="NoWrap" FontSize="18" 
+                         Background="Transparent" GotFocus="UsernameTextBox_GotFocus" LostFocus="UsernameTextBox_LostFocus"/>
+            </Grid>
+            <Button Command="{Binding UpdateUsernameCommand}" IsEnabled="{Binding RenameButtonEnabled, Mode=OneWay}"
+                    Content="Rename" FontSize="15" HorizontalAlignment="Left" Height="30" Width="130" Margin="215,0,0,0"/>
         </Grid>
+
         <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Height="30" Width="360" Margin="0,10,10,0">
             <TextBox Text="{Binding Path=Host, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                      IsEnabled="{Binding HostAndPortFieldsEnabled, Mode=OneWay}" TextWrapping="NoWrap" 
@@ -22,13 +27,17 @@
                      IsEnabled="{Binding HostAndPortFieldsEnabled, Mode=OneWay}" TextWrapping="NoWrap" FontSize="18" 
                      HorizontalAlignment="Center" Height="30" Width="80" Margin="5,0,0,0"/>
             <Button Command="{Binding ConnectOrDisconnectCommand}" Content="{Binding ConnectOrDisconnectButtonContent, Mode=OneWay}" 
+                    IsEnabled="{Binding ConnectOrDisconnectButtonEnabled, Mode=OneWay}"
                     FontSize="15" HorizontalAlignment="Right" Height="30" Width="130"/>
         </Grid>
 
-        <TextBox Text="{Binding Path=Chat, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontSize="18"
-                 ScrollViewer.VerticalScrollBarVisibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Center" Height="400" Width="750" Margin="0,0,0,30"/>
+        <TextBox Text="{Binding Path=Chat, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                 IsReadOnly="True" TextWrapping="Wrap" FontSize="18" ScrollViewer.VerticalScrollBarVisibility="Visible" 
+                 HorizontalAlignment="Center" VerticalAlignment="Center" Height="400" Width="750" Margin="0,0,0,30"/>
 
-        <TextBox Text="{Binding Path=Message, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" FontSize="18" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="60" Width="650" Margin="10,0,0,10"/>
-        <Button Command="{Binding SendMessageCommand}" Content="Send" FontSize="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="60" Width="100" Margin="0,0,10,10"/>
+        <TextBox Text="{Binding Path=Message, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextWrapping="Wrap" FontSize="18" 
+                 HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="60" Width="650" Margin="10,0,0,10"/>
+        <Button Command="{Binding SendMessageCommand}" Content="Send" FontSize="15" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="60" Width="100" Margin="0,0,10,10"/>
     </Grid>
 </Window>

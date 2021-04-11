@@ -32,6 +32,13 @@ namespace ClientSide.Models
             remove => WriteMessage -= value;
         }
 
+        public Action RaiseConnectionStatusChanged { get; private set; } = () => { };
+        public event Action OnConnectionStatusChanged
+        {
+            add => RaiseConnectionStatusChanged += value;
+            remove => RaiseConnectionStatusChanged -= value;
+        }
+
         public Client()
         {
             Handler = new PacketHandler(this);
@@ -57,6 +64,7 @@ namespace ClientSide.Models
                 }
 
                 Log($"Failed to connect to server: {e.Message}");
+                Disconnect();
             }
 
             if (!_socket.Connected)
@@ -67,6 +75,9 @@ namespace ClientSide.Models
             _stream = _socket.GetStream();
             SendPacket(new ConnectionRequestPacket(Username)); 
             _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
+
+            Log($"You have connected to the server as \"{Username}\".");
+            RaiseConnectionStatusChanged();
         }
 
         private void ReceiveCallback(IAsyncResult result)
@@ -95,13 +106,20 @@ namespace ClientSide.Models
                     }
 
                     Log("Received data that cannot be deserialized to a packet!");
+                    Disconnect();
                 }
 
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
+                if (e is ObjectDisposedException)
+                {
+                    return; // Client disconnected
+                }
+
                 Log($"Failed to receive data from server: {e.Message}");
+                Disconnect();
             }
         }
 
@@ -120,15 +138,19 @@ namespace ClientSide.Models
                 }
 
                 Log($"Failed to send data to server: {e.Message}");
+                Disconnect();
             }
         }
 
         public void Disconnect()
         {
-            SendPacket(new WarningPacket(WarningCode.ClientDisconnecting));
+            SendPacket(new NotificationPacket(NotificationCode.ClientDisconnecting));
 
             _stream?.Close();
             _socket?.Close();
+
+            Log("You have disconnected from the server.");
+            RaiseConnectionStatusChanged();
         }
     }
 }
