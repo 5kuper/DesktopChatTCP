@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using Packets;
 
@@ -55,6 +56,13 @@ namespace ClientSide.Models
             try
             {
                 _socket.EndConnect(result);
+
+                _stream = _socket.GetStream();
+                SendPacket(new ConnectionRequestPacket(Username));
+                _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
+
+                Log($"You have connected to the server as \"{Username}\".");
+                RaiseConnectionStatusChanged();
             }
             catch (Exception e)
             {
@@ -63,21 +71,19 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log($"Failed to connect to server: {e.Message}");
+                Log("Failed to connect to server.");
+
+                if (e is SocketException se && se.ErrorCode == 10054)
+                {
+                    Log("An existing connection was forcibly closed by the remote host.");
+                }
+                else if (e is IOException)
+                {
+                    Log("Maybe an existing connection was forcibly closed by the remote host.");
+                }
+
                 Disconnect();
             }
-
-            if (!_socket.Connected)
-            {
-                return;
-            }
-
-            _stream = _socket.GetStream();
-            SendPacket(new ConnectionRequestPacket(Username)); 
-            _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
-
-            Log($"You have connected to the server as \"{Username}\".");
-            RaiseConnectionStatusChanged();
         }
 
         private void ReceiveCallback(IAsyncResult result)
@@ -98,13 +104,8 @@ namespace ClientSide.Models
                     Packet packet = Packet.Deserialize(data);
                     Handler.Handle(packet);
                 }
-                catch (Exception e)
+                catch
                 {
-                    if (e is ObjectDisposedException)
-                    {
-                        return; // Client disconnected
-                    }
-
                     Log("Received data that cannot be deserialized to a packet!");
                     Disconnect();
                 }
@@ -118,7 +119,17 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log($"Failed to receive data from server: {e.Message}");
+                Log("Failed to receive data from server.");
+
+                if (e is SocketException se && se.ErrorCode == 10054)
+                {
+                    Log("An existing connection was forcibly closed by the remote host.");
+                }
+                else if (e is IOException)
+                {
+                    Log("Maybe an existing connection was forcibly closed by the remote host.");
+                }
+
                 Disconnect();
             }
         }
@@ -137,20 +148,31 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log($"Failed to send data to server: {e.Message}");
+                Log("Failed to send data to server.");
+
+                if (e is SocketException se && se.ErrorCode == 10054)
+                {
+                    Log("An existing connection was forcibly closed by the remote host.");
+                }
+
                 Disconnect();
             }
         }
 
         public void Disconnect()
         {
-            SendPacket(new NotificationPacket(NotificationCode.ClientDisconnecting));
+            try
+            {
+                SendPacket(new NotificationPacket(NotificationCode.ClientDisconnecting));
+            }
+            finally
+            {
+                _stream?.Close();
+                _socket?.Close();
 
-            _stream?.Close();
-            _socket?.Close();
-
-            Log("You have disconnected from the server.");
-            RaiseConnectionStatusChanged();
+                Log("You have disconnected from the server.");
+                RaiseConnectionStatusChanged();
+            }
         }
     }
 }

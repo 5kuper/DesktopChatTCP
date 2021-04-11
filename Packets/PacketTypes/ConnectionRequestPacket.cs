@@ -2,6 +2,8 @@
 
 namespace Packets
 {
+    // Clients send it to the server after connecting
+
     [Packet(3, typeof(ConnectionRequestPacket)), Serializable]
     public class ConnectionRequestPacket : Packet
     {

@@ -42,11 +42,6 @@ namespace ServerSide
             try
             {
                 int byteLength = _stream.EndRead(result);
-                if (byteLength <= 0)
-                {
-                    return;
-                }
-
                 byte[] data = new byte[byteLength];
                 Array.Copy(_buffer, data, byteLength);
 
@@ -63,6 +58,7 @@ namespace ServerSide
                     }
 
                     _server.Handler.Handle(packet, this);
+                    _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
                 }
                 catch (Exception e)
                 {
@@ -74,8 +70,6 @@ namespace ServerSide
                     _server.Log($"Closing connection {RemoteEndPoint} from which data was received that cannot be deserialized to a packet!");
                     Close();
                 }
-
-                _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
             }
             catch (Exception e)
             {
@@ -91,9 +85,9 @@ namespace ServerSide
 
         public void SendPacket(Packet packet)
         {
+            packet.Serialize(out byte[] data);
             try
             {
-                packet.Serialize(out byte[] data);
                 _stream.WriteAsync(data, 0, data.Length);
             }
             catch (Exception e)

@@ -14,8 +14,11 @@ namespace ServerSide
 
         public PacketHandler Handler { get; }
 
-        public List<Connection> ConnectedUsers { get; } // Confirmed connections
-        public List<Connection> ProcessingClients { get; } // Unconfirmed connections
+        /// <summary>Confirmed connections.</summary>
+        public List<Connection> ConnectedUsers { get; }
+
+        /// <summary>Unconfirmed connections that are to confirm or reject.</summary>
+        public List<Connection> ProcessingClients { get; }
 
         private readonly TcpListener _listener;
 
@@ -98,14 +101,19 @@ namespace ServerSide
 
         public void Stop()
         {
-            BroadcastPacket(new NotificationPacket(NotificationCode.ServerStopping));
-
-            _listener.Stop();
-            foreach (var connection in ConnectedUsers)
+            try
             {
-                connection.Close();
+                BroadcastPacket(new NotificationPacket(NotificationCode.ServerStopping));
             }
-            Log("Server stopped.");
+            finally
+            {
+                _listener.Stop();
+                foreach (var connection in ConnectedUsers)
+                {
+                    connection.Close();
+                }
+                Log("Server stopped.");
+            }
         }
     }
 }
