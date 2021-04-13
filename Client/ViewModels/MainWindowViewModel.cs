@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using ClientSide.Commands;
@@ -11,14 +12,14 @@ namespace ClientSide.ViewModels
     {
         public Client Client { get; set; }
 
-        private string _username;
+        #region Field values
+        private string _username = string.Empty;
         public string Username
         {
             get => _username;
             set
             {
                 _username = value;
-                RenameButtonEnabled = _username?.Trim(' ') != string.Empty && !Client.Connected;
                 OnPropertyChanged(nameof(Username));
             }
         }
@@ -34,8 +35,8 @@ namespace ClientSide.ViewModels
             }
         }
 
-        private int _port = 8888;
-        public int Port
+        private string _port = "8888";
+        public string Port
         {
             get => _port;
             set
@@ -67,7 +68,19 @@ namespace ClientSide.ViewModels
                 OnPropertyChanged(nameof(Message));
             }
         }
+        #endregion
 
+        #region Field options
+        private bool _usernameFieldEnabled = true;
+        public bool UsernameFieldEnabled
+        {
+            get => _usernameFieldEnabled;
+            set
+            {
+                _usernameFieldEnabled = value;
+                OnPropertyChanged(nameof(UsernameFieldEnabled));
+            }
+        }
 
         private bool _hostAndPortFieldsEnabled = true;
         public bool HostAndPortFieldsEnabled
@@ -91,7 +104,7 @@ namespace ClientSide.ViewModels
             }
         }
 
-        private bool _connectOrDisconnectButtonEnabled;
+        private bool _connectOrDisconnectButtonEnabled = true;
         public bool ConnectOrDisconnectButtonEnabled
         {
             get => _connectOrDisconnectButtonEnabled;
@@ -99,6 +112,17 @@ namespace ClientSide.ViewModels
             {
                 _connectOrDisconnectButtonEnabled = value;
                 OnPropertyChanged(nameof(ConnectOrDisconnectButtonEnabled));
+            }
+        }
+
+        private string _renameButtonContent = "Rename";
+        public string RenameButtonContent
+        {
+            get => _renameButtonContent;
+            set
+            {
+                _renameButtonContent = value;
+                OnPropertyChanged(nameof(RenameButtonContent));
             }
         }
 
@@ -112,20 +136,9 @@ namespace ClientSide.ViewModels
                 OnPropertyChanged(nameof(ConnectOrDisconnectButtonContent));
             } 
         }
+        #endregion
 
-
-        public ICommand UpdateUsernameCommand
-        {
-            get
-            {
-                return new RelayCommand(o =>
-                {
-                    Client.Username = Username;
-                    ConnectOrDisconnectButtonEnabled = true;
-                });
-            }
-        }
-
+        #region Button commands
         public ICommand ConnectOrDisconnectCommand
         {
             get {
@@ -133,13 +146,30 @@ namespace ClientSide.ViewModels
                 {
                     if (!Client.Connected)
                     {
-                        Client.Connect(Host, Port);
+                        // Connect button
+                        if (Username.Trim(' ') == string.Empty)
+                        {
+                            Log("Enter your username!");
+                        }
+                        else if (Host.Trim(' ') == string.Empty)
+                        {
+                            Log("Enter server host!");
+                        }
+                        else if (!int.TryParse(Port, out var port))
+                        {
+                            Log("Enter server port!");
+                        }
+                        else
+                        {
+                            Client.Username = Username;
+                            Client.Connect(Host, port);
+                        }
                     }
                     else
                     {
+                        // Disconnect button
                         Client.Disconnect();
                     }
-                    HandleConnectionStatus();
                 });
             }
         }
@@ -157,6 +187,45 @@ namespace ClientSide.ViewModels
             }
         }
 
+        public ICommand UpdateUsernameCommand
+        {
+            get
+            {
+                return new RelayCommand(o =>
+                {
+                    if (RenameButtonContent == "Rename")
+                    {
+                        // Rename button
+                        RenameButtonContent = "Send Request";
+                        UsernameFieldEnabled = true;
+                    }
+                    else
+                    {
+                        // Send Request button
+                        if (Username?.Trim(' ') == string.Empty)
+                        {
+                            Log("Username can't be empty!");
+                            return;
+                        }
+                        else if (Username == Client.Username)
+                        {
+                            Log("Renaming canceled.");
+                        }
+                        else
+                        {
+                            // TODO: Send renaming request
+                            Log("Renaming request sent.");
+                        }
+                        RenameButtonContent = "Rename";
+                        UsernameFieldEnabled = false;
+                    }
+
+                    Client.Username = Username;
+                    ConnectOrDisconnectButtonEnabled = true;
+                });
+            }
+        }
+        #endregion
 
         public MainWindowViewModel()
         {
@@ -166,30 +235,49 @@ namespace ClientSide.ViewModels
             Client.OnConnectionStatusChanged += HandleConnectionStatus;
         }
 
-        public void Log(string text)
+        private void Log(string text)
         {
             Chat += text + "\n";
         }
 
-        public void WriteMessage(string sender, string content)
+        private void WriteMessage(string sender, string content)
         {
             Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {sender}: {content}\n";
         }
 
-        public void HandleConnectionStatus()
+        private void HandleConnectionStatus()
         {
             if (Client.Connected)
             {
-                RenameButtonEnabled = false;
-                HostAndPortFieldsEnabled = false;
-                ConnectOrDisconnectButtonContent = "Disconnect";
+                SetConnectedState();
             }
             else
             {
-                RenameButtonEnabled = true;
-                HostAndPortFieldsEnabled = true;
-                ConnectOrDisconnectButtonContent = "Connect";
+                SetDisconnectedState();
             }
+        }
+
+        private void SetConnectedState()
+        {
+            UsernameFieldEnabled = false;
+            HostAndPortFieldsEnabled = false;
+
+            ConnectOrDisconnectButtonContent = "Disconnect";
+
+            RenameButtonContent = "Rename";
+            RenameButtonEnabled = true;
+
+        }
+
+        private void SetDisconnectedState()
+        {
+            UsernameFieldEnabled = true;
+            HostAndPortFieldsEnabled = true;
+
+            ConnectOrDisconnectButtonContent = "Connect";
+
+            RenameButtonContent = "Rename";
+            RenameButtonEnabled = false;
         }
     }
 }

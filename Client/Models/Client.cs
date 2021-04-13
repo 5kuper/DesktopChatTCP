@@ -82,7 +82,8 @@ namespace ClientSide.Models
                     Log("Maybe an existing connection was forcibly closed by the remote host.");
                 }
 
-                Disconnect();
+                DisposeSocket();
+                RaiseConnectionStatusChanged();
             }
         }
 
@@ -167,12 +168,16 @@ namespace ClientSide.Models
             }
             finally
             {
-                _stream?.Close();
-                _socket?.Close();
-
+                DisposeSocket();
                 Log("You have disconnected from the server.");
                 RaiseConnectionStatusChanged();
             }
+        }
+
+        private void DisposeSocket()
+        {
+            _stream?.Close();
+            _socket?.Close();
         }
     }
 }
