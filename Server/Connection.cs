@@ -67,7 +67,7 @@ namespace ServerSide
                         return; // Connection closed
                     }
 
-                    _server.Log($"Closing connection {RemoteEndPoint} from which data was received that cannot be deserialized to a packet!");
+                    _server.Log($"Closing connection {RemoteEndPoint} from which data was received that cannot be deserialized to a packet or handled!");
                     Close();
                 }
             }
@@ -104,6 +104,11 @@ namespace ServerSide
 
         public void Close()
         {
+            if (IsConfirmed)
+            {
+                _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserDisconnected, Username), this);
+            }
+
             _server.Log($"Connection {RemoteEndPoint} closed.");
 
             _server.ConnectedUsers.Remove(this);

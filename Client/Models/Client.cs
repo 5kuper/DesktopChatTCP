@@ -49,6 +49,7 @@ namespace ClientSide.Models
         {
             _socket = new TcpClient();
             _socket.BeginConnect(host, port, ConnectCallback, _socket);
+            Log("Connecting to the server...");
         }
 
         public void ConnectCallback(IAsyncResult result)
@@ -60,9 +61,6 @@ namespace ClientSide.Models
                 _stream = _socket.GetStream();
                 SendPacket(new ConnectionRequestPacket(Username));
                 _stream.BeginRead(_buffer, 0, _buffer.Length, ReceiveCallback, null);
-
-                Log($"You have connected to the server as \"{Username}\".");
-                RaiseConnectionStatusChanged();
             }
             catch (Exception e)
             {
@@ -71,7 +69,7 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log("Failed to connect to server.");
+                Log("Failed to connect to the server.");
 
                 if (e is SocketException se && se.ErrorCode == 10054)
                 {
@@ -83,6 +81,9 @@ namespace ClientSide.Models
                 }
 
                 DisposeSocket();
+            }
+            finally
+            {
                 RaiseConnectionStatusChanged();
             }
         }
@@ -107,7 +108,7 @@ namespace ClientSide.Models
                 }
                 catch
                 {
-                    Log("Received data that cannot be deserialized to a packet!");
+                    Log("Received data that cannot be deserialized to a packet or handled!");
                     Disconnect();
                 }
 
@@ -120,7 +121,7 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log("Failed to receive data from server.");
+                Log("Failed to receive data from the server.");
 
                 if (e is SocketException se && se.ErrorCode == 10054)
                 {
@@ -149,7 +150,7 @@ namespace ClientSide.Models
                     return; // Client disconnected
                 }
 
-                Log("Failed to send data to server.");
+                Log("Failed to send data to the server.");
 
                 if (e is SocketException se && se.ErrorCode == 10054)
                 {

@@ -99,6 +99,21 @@ namespace ServerSide
             }
         }
 
+        public void KickUser(string username)
+        {
+            Connection user = ConnectedUsers.FirstOrDefault(c => c.Username == username);
+            if (user != null)
+            {
+                Log($"User \"{username}\" kicked from server!");
+                BroadcastPacket(new NotificationPacket(NotificationCode.UserKicked, username));
+                user.Close();
+            }
+            else
+            {
+                Log($"Failed to kick: user \"{username}\" not found!");
+            }
+        }
+
         public void Stop()
         {
             try

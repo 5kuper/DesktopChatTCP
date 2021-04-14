@@ -21,9 +21,9 @@ namespace ServerSide
                 _server.Log($"User \"{sender.Username}\" said: \"{message.Content}\"");
                 _server.BroadcastPacket(new MessagePacket(sender.Username, message.Content), sender);
             }
-            else if (packet is NotificationPacket warning)
+            else if (packet is NotificationPacket notification)
             {
-                switch (warning.Code)
+                switch (notification.Code)
                 {
                     case NotificationCode.ClientDisconnecting:
                         sender.Close();
@@ -31,7 +31,7 @@ namespace ServerSide
                         _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserDisconnected, sender.Username));
                         break;
                     default:
-                        _server.Log($"User \"{sender.Username}\" sent invalid warning!");
+                        _server.Log($"User \"{sender.Username}\" sent invalid notification!");
                         break;
                 }
             }
@@ -62,6 +62,26 @@ namespace ServerSide
 
                     _server.Log($"Client {sender.RemoteEndPoint} connected to server as \"{sender.Username}\".");
                     _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserConnected, sender.Username), sender);
+                }
+            }
+            else if (packet is RenamingRequestPacket renaming)
+            {
+                if (UnavailableUsernames.Contains(renaming.NewUsername))
+                {
+                    sender.SendPacket(new RenamingResponsePacket(RejectionReason.UsernameUnavailable));
+                    _server.Log($"Renaming request from {sender.Username} was rejected: Username \"{renaming.NewUsername}\" unavailable.");
+                }
+                else if (_server.ConnectedUsers.Any(c => c.Username == renaming.NewUsername))
+                {
+                    sender.SendPacket(new RenamingResponsePacket(RejectionReason.UsernameAlreadyUsed));
+                    _server.Log($"Renaming request from {sender.Username} was rejected: Username \"{renaming.NewUsername}\" already used.");
+                }
+                else
+                {
+                    sender.SendPacket(new RenamingResponsePacket(renaming.NewUsername));
+                    _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserRenamed, sender.Username, renaming.NewUsername));
+                    _server.Log($"User \"{sender.Username}\" renamed to \"{renaming.NewUsername}\".");
+                    sender.Username = renaming.NewUsername;
                 }
             }
             else

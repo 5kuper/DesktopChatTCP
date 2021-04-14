@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Globalization;
-using System.Windows;
 using System.Windows.Input;
 using ClientSide.Commands;
 using ClientSide.Models;
@@ -230,7 +228,7 @@ namespace ClientSide.ViewModels
                         }
                         else
                         {
-                            // TODO: Send renaming request
+                            Client.SendPacket(new RenamingRequestPacket(Username));
                             Log("Renaming request sent.");
                         }
 
@@ -256,12 +254,12 @@ namespace ClientSide.ViewModels
 
         private void Log(string text)
         {
-            Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {text}\n";
+            Chat += $"{DateTime.Now:HH:mm} {text}\n";
         }
 
         private void DisplayMessage(string sender, string content)
         {
-            Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {sender}: {content}\n";
+            Chat += $"{DateTime.Now:HH:mm} {sender}: {content}\n";
         }
 
         private void HandleConnectionStatus()
