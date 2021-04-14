@@ -13,7 +13,9 @@ namespace ClientSide.ViewModels
         public Client Client { get; set; }
 
         #region Field values
+
         private string _username = string.Empty;
+
         public string Username
         {
             get => _username;
@@ -25,6 +27,7 @@ namespace ClientSide.ViewModels
         }
 
         private string _host = "127.0.0.1";
+
         public string Host
         {
             get => _host;
@@ -36,6 +39,7 @@ namespace ClientSide.ViewModels
         }
 
         private string _port = "8888";
+
         public string Port
         {
             get => _port;
@@ -43,10 +47,11 @@ namespace ClientSide.ViewModels
             {
                 _port = value;
                 OnPropertyChanged(nameof(Port));
-            } 
+            }
         }
 
         private string _chat;
+
         public string Chat
         {
             get => _chat;
@@ -59,6 +64,7 @@ namespace ClientSide.ViewModels
         }
 
         private string _message;
+
         public string Message
         {
             get => _message;
@@ -68,10 +74,13 @@ namespace ClientSide.ViewModels
                 OnPropertyChanged(nameof(Message));
             }
         }
+
         #endregion
 
         #region Field options
+
         private bool _usernameFieldEnabled = true;
+
         public bool UsernameFieldEnabled
         {
             get => _usernameFieldEnabled;
@@ -83,6 +92,7 @@ namespace ClientSide.ViewModels
         }
 
         private bool _hostAndPortFieldsEnabled = true;
+
         public bool HostAndPortFieldsEnabled
         {
             get => _hostAndPortFieldsEnabled;
@@ -94,6 +104,7 @@ namespace ClientSide.ViewModels
         }
 
         private bool _renameButtonEnabled;
+
         public bool RenameButtonEnabled
         {
             get => _renameButtonEnabled;
@@ -105,6 +116,7 @@ namespace ClientSide.ViewModels
         }
 
         private bool _connectOrDisconnectButtonEnabled = true;
+
         public bool ConnectOrDisconnectButtonEnabled
         {
             get => _connectOrDisconnectButtonEnabled;
@@ -116,6 +128,7 @@ namespace ClientSide.ViewModels
         }
 
         private string _renameButtonContent = "Rename";
+
         public string RenameButtonContent
         {
             get => _renameButtonContent;
@@ -127,6 +140,7 @@ namespace ClientSide.ViewModels
         }
 
         private string _connectOrDisconnectButtonContent = "Connect";
+
         public string ConnectOrDisconnectButtonContent
         {
             get => _connectOrDisconnectButtonContent;
@@ -134,14 +148,17 @@ namespace ClientSide.ViewModels
             {
                 _connectOrDisconnectButtonContent = value;
                 OnPropertyChanged(nameof(ConnectOrDisconnectButtonContent));
-            } 
+            }
         }
+
         #endregion
 
         #region Button commands
+
         public ICommand ConnectOrDisconnectCommand
         {
-            get {
+            get
+            {
                 return new RelayCommand(o =>
                 {
                     if (!Client.Connected)
@@ -181,7 +198,7 @@ namespace ClientSide.ViewModels
                 return new RelayCommand(o =>
                 {
                     Client.SendPacket(new MessagePacket(Message));
-                    WriteMessage("You", Message);
+                    DisplayMessage("You", Message);
                     Message = null;
                 });
             }
@@ -216,6 +233,7 @@ namespace ClientSide.ViewModels
                             // TODO: Send renaming request
                             Log("Renaming request sent.");
                         }
+
                         RenameButtonContent = "Rename";
                         UsernameFieldEnabled = false;
                     }
@@ -225,22 +243,23 @@ namespace ClientSide.ViewModels
                 });
             }
         }
+
         #endregion
 
         public MainWindowViewModel()
         {
             Client = new Client();
             Client.OnLog += Log;
-            Client.OnWriteMessage += WriteMessage;
+            Client.OnDisplayMessage += DisplayMessage;
             Client.OnConnectionStatusChanged += HandleConnectionStatus;
         }
 
         private void Log(string text)
         {
-            Chat += text + "\n";
+            Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {text}\n";
         }
 
-        private void WriteMessage(string sender, string content)
+        private void DisplayMessage(string sender, string content)
         {
             Chat += $"{DateTime.Now.Hour}:{DateTime.Now.Minute} {sender}: {content}\n";
         }

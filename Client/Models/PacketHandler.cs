@@ -14,19 +14,25 @@ namespace ClientSide.Models
         {
             if (packet is MessagePacket message)
             {
-                _client.WriteMessage(message.Sender, message.Content);
+                _client.DisplayMessage(message.Sender, message.Content);
             }
-            else if (packet is NotificationPacket warning)
+            else if (packet is NotificationPacket notification)
             {
-                switch (warning.Code)
+                switch (notification.Code)
                 {
                     case NotificationCode.ServerStopping:
                         _client.Disconnect();
-                        _client.Log($"Server stopped!");
+                        _client.Log("Server stopped!");
                         break;
-                    /* default:
-                        _client.Log($"Server sent invalid warning!");
-                        break; */
+                    case NotificationCode.UserConnected:
+                        _client.Log($"User \"{notification.Content[0]}\" connected to the server.");
+                        break;
+                    case NotificationCode.UserDisconnected:
+                        _client.Log($"User \"{notification.Content[0]}\" disconnected from the server.");
+                        break;
+                        /* default:
+                            _client.Log($"Server sent invalid warning!");
+                            break; */
                 }
             }
             else if (packet is ConnectionResponsePacket response)

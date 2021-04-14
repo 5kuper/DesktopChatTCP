@@ -28,6 +28,7 @@ namespace ServerSide
                     case NotificationCode.ClientDisconnecting:
                         sender.Close();
                         _server.Log($"User \"{sender.Username}\" disconnected!");
+                        _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserDisconnected, sender.Username));
                         break;
                     default:
                         _server.Log($"User \"{sender.Username}\" sent invalid warning!");
@@ -60,6 +61,7 @@ namespace ServerSide
                     sender.SendPacket(new ConnectionResponsePacket(sender.ID));
 
                     _server.Log($"Client {sender.RemoteEndPoint} connected to server as \"{sender.Username}\".");
+                    _server.BroadcastPacket(new NotificationPacket(NotificationCode.UserConnected, sender.Username), sender);
                 }
             }
             else

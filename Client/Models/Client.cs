@@ -26,11 +26,11 @@ namespace ClientSide.Models
             remove => Log -= value;
         }
 
-        public Action<string, string> WriteMessage { get; private set; } = (s, c) => { };
-        public event Action<string, string> OnWriteMessage
+        public Action<string, string> DisplayMessage { get; private set; } = (s, c) => { };
+        public event Action<string, string> OnDisplayMessage
         {
-            add => WriteMessage += value;
-            remove => WriteMessage -= value;
+            add => DisplayMessage += value;
+            remove => DisplayMessage -= value;
         }
 
         public Action RaiseConnectionStatusChanged { get; private set; } = () => { };
