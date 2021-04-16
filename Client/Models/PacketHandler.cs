@@ -35,7 +35,7 @@ namespace ClientSide.Models
                         break;
                     case NotificationCode.UserKicked:
                         string username = notification.Content[0];
-                        _client.Log($"User \"{username}\" kicked by the server!");
+                        _client.Log($"User \"{username}\" kicked by the server admin!");
                         if (username == _client.Username)
                         {
                             _client.Disconnect();
