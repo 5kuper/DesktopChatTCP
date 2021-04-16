@@ -56,7 +56,7 @@ namespace ServerSide
             catch (Exception e)
             {
                 Log($"Server failed to start:\n{e.Message}");
-                Stop();
+                _listener.Stop();
             }
         }
 
@@ -110,7 +110,7 @@ namespace ServerSide
             }
             else
             {
-                Log($"Failed to kick: user \"{username}\" not found!");
+                Log($"Failed to kick: User \"{username}\" not found!");
             }
         }
 

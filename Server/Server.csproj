@@ -6,7 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Logger\Logger.csproj" />
     <ProjectReference Include="..\Packets\Packets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SCS.MainCommands">
+      <HintPath>Libraries\SCS.MainCommands.dll</HintPath>
+    </Reference>
+    <Reference Include="SCS.System">
+      <HintPath>Libraries\SCS.System.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
