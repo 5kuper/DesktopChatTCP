@@ -8,7 +8,7 @@ namespace ServerSide
     /// <summary>It handles packets sent to the server.</summary>
     public class PacketHandler
     {
-        private static readonly List<string> UnavailableUsernames = new List<string>() {"You"};
+        private static readonly List<string> UnavailableUsernames = new List<string>() { "You", "Server" };
 
         private readonly Server _server;
 
@@ -43,7 +43,7 @@ namespace ServerSide
                     _server.Log($"Connection request from {sender.RemoteEndPoint} was rejected: Username \"{request.Username}\" unavailable.");
                     sender.Close();
                 }
-                else if (_server.ConnectedUsers.Any(c => c.Username == request.Username))
+                else if (_server.ConnectedUsers.ToList().Any(c => c.Username == request.Username))
                 {
                     sender.SendPacket(new ConnectionResponsePacket(RejectionReason.UsernameAlreadyUsed));
                     _server.Log($"Connection request from {sender.RemoteEndPoint} was rejected: Username \"{request.Username}\" already used.");
@@ -71,7 +71,7 @@ namespace ServerSide
                     sender.SendPacket(new RenamingResponsePacket(RejectionReason.UsernameUnavailable));
                     _server.Log($"Renaming request from {sender.Username} was rejected: Username \"{renaming.NewUsername}\" unavailable.");
                 }
-                else if (_server.ConnectedUsers.Any(c => c.Username == renaming.NewUsername))
+                else if (_server.ConnectedUsers.ToList().Any(c => c.Username == renaming.NewUsername))
                 {
                     sender.SendPacket(new RenamingResponsePacket(RejectionReason.UsernameAlreadyUsed));
                     _server.Log($"Renaming request from {sender.Username} was rejected: Username \"{renaming.NewUsername}\" already used.");
