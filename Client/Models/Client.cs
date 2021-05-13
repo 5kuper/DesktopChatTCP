@@ -175,7 +175,7 @@ namespace ClientSide.Models
             }
         }
 
-        private void DisposeSocket()
+        public void DisposeSocket()
         {
             _stream?.Close();
             _socket?.Close();

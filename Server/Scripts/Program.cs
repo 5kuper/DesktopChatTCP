@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Text.Encodings.Web;
+using System.Runtime.InteropServices;
 using Packets;
 using SCS.System;
 using SCS.Commands;
@@ -17,6 +17,11 @@ namespace ServerSide
 
         private static void Main(string[] args)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WindowHeight = 20;
+            }
+
             Console.Title = "Server";
             Command.StandardPrefix = "/";
             Command.RegisterCommands<Program>();
@@ -62,12 +67,11 @@ namespace ServerSide
             }
         }
 
-        [Command(null, "start", "Starts the server on the specified port.")]
-        private static void StartServer(int port)
+        private static void StartServer(int port, int maxConnections = -1)
         {
             if (_chatServer == null)
             {
-                _chatServer = new Server(port);
+                _chatServer = new Server(port, maxConnections);
                 _chatServer.OnLog += Log;
                 _chatServer.Start();
 
@@ -79,8 +83,20 @@ namespace ServerSide
             }
         }
 
+        [Command(null, "start", "Starts the server on the specified port.")]
+        private static void StartServerCommand(int port)
+        {
+            StartServer(port);
+        }
+
+        [Command(null, "start", "Starts the server with the specified maximum of connections.")]
+        private static void StartServerCommand(int port, int maxConnections)
+        {
+            StartServer(port, maxConnections);
+        }
+
         [Command(null, "send", "Sends a message on behalf of the server.")]
-        private static void SendMessage(string message)
+        private static void SendMessageCommand(string message)
         {
             if (_chatServer != null)
             {
@@ -95,7 +111,7 @@ namespace ServerSide
         }
 
         [Command(null, "kick", "Kicks the user with the specified username.")]
-        private static void Kickuser(string username)
+        private static void KickUserCommand(string username)
         {
             if (_chatServer != null)
             {
@@ -109,7 +125,7 @@ namespace ServerSide
         }
 
         [Command(null, "stop", "Stops the server.")]
-        private static void StopServer()
+        private static void StopServerCommand()
         {
             if (_chatServer != null)
             {

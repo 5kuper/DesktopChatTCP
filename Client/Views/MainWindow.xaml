@@ -7,7 +7,7 @@
         xmlns:viewmodels="clr-namespace:ClientSide.ViewModels"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainWindowViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Background="LightBlue" Height="600" Width="800" MinHeight="600" MaxHeight="600" MinWidth="800" MaxWidth="800">
+        Title="Chat" Background="LightBlue" Height="600" Width="800" MinHeight="600" MaxHeight="600" MinWidth="800" MaxWidth="800">
     <Grid>
         <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="360" Margin="10,10,0,0">
             <Grid IsEnabled="{Binding Path=UsernameFieldEnabled, Mode=OneWay}"  

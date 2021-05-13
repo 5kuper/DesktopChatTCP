@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 
 namespace Logger
 {
@@ -8,6 +9,11 @@ namespace Logger
     {
         private static void Main(string[] args)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WindowHeight = 10;
+            }
+
             Console.Title = "Server Log";
             string pipeToken = args[0];
 

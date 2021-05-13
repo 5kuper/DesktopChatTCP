@@ -72,6 +72,8 @@ namespace ClientSide.Models
                             _client.Log("Failed to connect: Unknown reason...");
                             break;
                     }
+                    _client.DisposeSocket();
+                    _client.RaiseConnectionStatusChanged();
                 }
             }
             else if (packet is RenamingResponsePacket renaming)

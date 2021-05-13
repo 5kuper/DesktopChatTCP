@@ -51,7 +51,7 @@ namespace ServerSide
                 _listener.Start();
                 _listener.BeginAcceptTcpClient(ConnectCallback, null);
 
-                Log($"Server started on port {Port}.");
+                Log($"Server started on port {Port}. Max connections: {MaxConnections}.");
             }
             catch (Exception e)
             {
@@ -93,7 +93,7 @@ namespace ServerSide
 
         public void BroadcastPacket(Packet packet, Connection ignored = null)
         {
-            foreach (var client in ConnectedUsers.Where(client => client != ignored))
+            foreach (var client in ConnectedUsers.ToList().Where(client => client != ignored))
             {
                 client.SendPacket(packet);
             }
@@ -101,7 +101,7 @@ namespace ServerSide
 
         public void KickUser(string username)
         {
-            Connection user = ConnectedUsers.FirstOrDefault(c => c.Username == username);
+            Connection user = ConnectedUsers.ToList().FirstOrDefault(c => c.Username == username);
             if (user != null)
             {
                 Log($"User \"{username}\" kicked from server!");
@@ -122,12 +122,18 @@ namespace ServerSide
             }
             finally
             {
-                _listener.Stop();
-                foreach (var connection in ConnectedUsers)
+                try
                 {
-                    connection.Close();
+                    _listener.Stop();
+                    foreach (var connection in ConnectedUsers.ToList())
+                    {
+                        connection.Close();
+                    }
                 }
-                Log("Server stopped.");
+                finally
+                {
+                    Log("Server stopped.");
+                }
             }
         }
     }
